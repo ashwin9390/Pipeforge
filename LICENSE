@@ -1,0 +1,33 @@
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   Copyright 2026 Ashwin H
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+DISCLAIMER:
+This software is provided "as is" without warranty of any kind.
+The Automatic Agent Creator utilizes autonomous orchestration (Unix pipes,
+shared memory, and subprocesses). By running this code, you acknowledge:
+
+  - Autonomous Actions: You are responsible for any file system changes,
+    API calls, or data deletions executed by the agents.
+  - Financial Liability: You are responsible for all costs incurred via
+    third-party APIs (e.g., OpenAI, Anthropic).
+  - System Integrity: The developer is not liable for system crashes,
+    memory leaks, or zombie processes resulting from the use of shared memory.
+
+RECOMMENDATION: Run all agents inside Docker containers. Do NOT run with
+root/administrator privileges. Add a "Final Review" step before permanent
+file writes or external API calls to shift legal agency back to the human.

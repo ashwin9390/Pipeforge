@@ -1,0 +1,157 @@
+services:
+  # -- CORE INFRASTRUCTURE ------------------------------------------------
+  blackboard:
+    image: redis:7-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  dashboard:
+    image: redis/redisinsight:latest
+    ports: ["5540:5540"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  log-streamer:
+    image: amir20/dozzle:latest
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
+    ports: ["8080:8080"]
+
+  # -- OBSERVABILITY: Jaeger (OpenTelemetry traces) -----------------------
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC receiver
+      - "6831:6831/udp" # Jaeger Thrift (legacy)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  # -- COMMAND CENTER -----------------------------------------------------
+  web-ui:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      - REDIS_HOST=blackboard
+      - UI_API_KEY=${UI_API_KEY}
+      - SESSION_BUDGET_USD=${SESSION_BUDGET_USD:-0.50}
+      - TASK_TIMEOUT_SEC=${TASK_TIMEOUT_SEC:-120}
+      - MAX_RETRIES_DLQ=${MAX_RETRIES_DLQ:-5}
+      - MAX_REQUEUE_COUNT=${MAX_REQUEUE_COUNT:-5}
+      - REQUEUE_JITTER_SEC=${REQUEUE_JITTER_SEC:-10}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-web-ui
+    command: ["uvicorn", "web_ui:app", "--host", "0.0.0.0", "--port", "3000"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  # -- ORCHESTRATION ------------------------------------------------------
+  supervisor:
+    build: .
+    environment:
+      - REDIS_HOST=blackboard
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ENABLE_LLM_SECURITY_SCAN=${ENABLE_LLM_SECURITY_SCAN:-true}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-supervisor
+    command: ["supervisor.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  # -- AGENT POOL ---------------------------------------------------------
+  collector:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_HOST=blackboard
+      - PROCESSOR_MODEL=${PROCESSOR_MODEL:-gpt-4o-mini}
+      - MCP_SERVERS=${MCP_SERVERS:-[]}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-collector
+    command: ["collector_node.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  processor-agent:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_HOST=blackboard
+      - PROCESSOR_MODEL=${PROCESSOR_MODEL:-gpt-4o-mini}
+      - MCP_SERVERS=${MCP_SERVERS:-[]}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-worker
+    deploy:
+      replicas: 3
+    stop_grace_period: 30s
+    command: ["processor_node.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  validator:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_HOST=blackboard
+      - PROCESSOR_MODEL=${PROCESSOR_MODEL:-gpt-4o-mini}
+      - MAX_VALIDATOR_RETRIES=${MAX_VALIDATOR_RETRIES:-2}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-validator
+    command: ["validator_node.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  # -- RELIABILITY NODES --------------------------------------------------
+  sentinel:
+    build: .
+    environment:
+      - REDIS_HOST=blackboard
+      - SENTINEL_STALL_SEC=${SENTINEL_STALL_SEC:-60}
+      - SENTINEL_SWEEP_SEC=${SENTINEL_SWEEP_SEC:-15}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-sentinel
+    command: ["sentinel_node.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  cost-controller:
+    build: .
+    environment:
+      - REDIS_HOST=blackboard
+      - SESSION_BUDGET_USD=${SESSION_BUDGET_USD:-0.50}
+      - TASK_TIMEOUT_SEC=${TASK_TIMEOUT_SEC:-120}
+      - MAX_RETRIES_DLQ=${MAX_RETRIES_DLQ:-5}
+      - MAX_REQUEUE_COUNT=${MAX_REQUEUE_COUNT:-5}
+      - REQUEUE_JITTER_SEC=${REQUEUE_JITTER_SEC:-10}
+      - COST_CHECK_SEC=${COST_CHECK_SEC:-10}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=pipeforge-cost-controller
+    command: ["cost_controller.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
+
+  # -- ARCHIVER -----------------------------------------------------------
+  archiver:
+    build: .
+    environment:
+      - REDIS_HOST=blackboard
+      - DATABASE_URL=${DATABASE_URL:-}
+      - ARCHIVE_DB_PATH=/app/data/pipeforge_archive.db
+      - ARCHIVER_SWEEP_SEC=${ARCHIVER_SWEEP_SEC:-30}
+    volumes:
+      - ./data:/app/data
+    command: ["archiver_node.py"]
+    depends_on:
+      blackboard:
+        condition: service_healthy
