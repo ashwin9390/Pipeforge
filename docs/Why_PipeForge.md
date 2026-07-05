@@ -1,10 +1,10 @@
 # Why PipeForge-AI Exist?
 
-THE THREE REAL PROBLEMS THIS SOLVES
+###THE THREE REAL PROBLEMS THIS SOLVES
 
---------------------------------------
-PROBLEM 1: "Denial of Wallet" Attacks
---------------------------------------
+
+###PROBLEM 1: "Denial of Wallet" Attacks
+
 
 WHAT HAPPENS:
   You run an AI agent to do a task. The agent gets stuck in a loop.
@@ -41,9 +41,8 @@ REAL EXAMPLE:
   No overshoot. No bill shock.
 
 
-----------------------------------------
-PROBLEM 2: Silent Agent Death
-----------------------------------------
+###PROBLEM 2: Silent Agent Death
+
 
 WHAT HAPPENS:
   An agent starts a task. The container crashes. The API times out.
@@ -78,9 +77,9 @@ REAL EXAMPLE:
   Task completes. User never knew anything went wrong.
 
 
-----------------------------------------------
-PROBLEM 3: Black Box -- No Observability
-----------------------------------------------
+
+###PROBLEM 3: Black Box -- No Observability
+
 
 WHAT HAPPENS:
   Your agent fails. You have no idea why.
@@ -117,9 +116,9 @@ REAL EXAMPLE:
   Fix takes 5 minutes instead of 2 hours.
 
 
-=======================================================
-WHO SHOULD USE PIPEFORGE
-=======================================================
+
+###WHO SHOULD USE PIPEFORGE
+
 
 USE PIPEFORGE IF YOU ARE:
   - A developer who wants to build agent workflows WITHOUT framework lock-in
@@ -135,9 +134,9 @@ DO NOT USE PIPEFORGE IF YOU:
   - Need a fully managed cloud service (use LangSmith or Vertex AI)
 
 
-=======================================================
+
 HOW IT COMPARES TO WHAT YOU MAY ALREADY KNOW
-=======================================================
+
 
 VS LangChain / LangGraph:
   LangGraph is the closest competitor in architecture (state machine).
