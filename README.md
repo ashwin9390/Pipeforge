@@ -31,8 +31,7 @@ The PipeForge test suite is verified with **12/12 tests passing**.
 **Requires:** Docker Desktop + OpenAI API key.
 
 ```bash
-git clone [https://github.com/ashwin9390/pipeforge-AI.git](https://github.com/ashwin9390/pipeforge.git)
-cd pipeforge
+git clone [[https://github.com/ashwin9390/pipeforge-AI](https://github.com/ashwin9390/Pipeforge-AI).git]
 cp .env.example .env        # Add OPENAI_API_KEY and UI_API_KEY
 chmod +x launch.sh
 ./launch.sh
@@ -263,5 +262,5 @@ pipeforge/
 
 ## Author & License
 * **Author**: Ashwin — [@ashwin9390](https://github.com/ashwin9390)
-* **License**: Apache 2.0. See [LICENSE] ([LICENSE](https://github.com/ashwin9390/Pipeforge/blob/main/LICENSE))
-* **GitHub**: [github.com/ashwin9390/pipeforge]
+* **License**: Apache 2.0. See [LICENSE] ([LICENSE](https://github.com/ashwin9390/Pipeforge-AI/blob/main/LICENSE))
+* **GitHub**: [https://github.com/ashwin9390/Pipeforge-AI/blob/main/LICENSE]
