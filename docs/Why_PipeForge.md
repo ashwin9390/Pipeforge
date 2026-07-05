@@ -135,7 +135,7 @@ DO NOT USE PIPEFORGE IF YOU:
 
 
 
-HOW IT COMPARES TO WHAT YOU MAY ALREADY KNOW
+###HOW IT COMPARES TO WHAT YOU MAY ALREADY KNOW
 
 
 VS LangChain / LangGraph:
@@ -169,9 +169,8 @@ VS Building From Scratch:
   Saves approximately 3-4 weeks of boilerplate engineering.
 
 
-=======================================================
-REAL WORLD USE CASES
-=======================================================
+###REAL WORLD USE CASES
+
 
 1. CONTENT FACTORY
    Input:  A list of 500 blog post topics
