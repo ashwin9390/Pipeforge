@@ -263,5 +263,5 @@ pipeforge/
 
 ## Author & License
 * **Author**: Ashwin — [@ashwin9390](https://github.com/ashwin9390)
-* **License**: Apache 2.0. See [LICENSE] (LICENSE)
-* **GitHub**: [github.com/ashwin9390/pipeforge](https://github.com/ashwin9390)
+* **License**: Apache 2.0. See [LICENSE] ([LICENSE](https://github.com/ashwin9390/Pipeforge/blob/main/LICENSE))
+* **GitHub**: [github.com/ashwin9390/pipeforge]
