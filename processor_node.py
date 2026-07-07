@@ -113,10 +113,11 @@ def _run_task(sid: str, state: dict):
     """Process a single session. Runs inside a timeout thread."""
     print(f"[Processor] Processing {sid}")
 
-    # Idempotency: skip if already processed by another worker
-    idem_key = f"processor:{sid}:{state.get('retry_count', 0)}"
-    if not bb.set_idempotency_key(idem_key, "processing"):
-        print(f"[Processor] {sid} already being processed -- skipping (idempotent)")
+    # Mutual exclusion: only one worker processes a session at a time. This is a
+    # lock, not a permanent marker -- it is released in the finally below so a later
+    # retry (processor error, timeout requeue, or sentinel requeue) can run again.
+    if not bb.acquire_processing_lock(sid, ttl_sec=TASK_TIMEOUT_SEC + 30):
+        print(f"[Processor] {sid} already being processed -- skipping (locked)")
         return
 
     try:
@@ -172,6 +173,10 @@ def _run_task(sid: str, state: dict):
         else:
             state["memory"].append(f"PROCESSOR: Error (attempt {retry}): {e}")
             bb.set_state(sid, state)
+
+    finally:
+        # Always release the lock so retries are not blocked by a stale marker.
+        bb.release_processing_lock(sid)
 
 
 def run_processor():
