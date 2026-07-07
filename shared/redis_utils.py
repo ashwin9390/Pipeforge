@@ -356,6 +356,18 @@ class BlackboardClient:
     def check_idempotency_key(self, key: str) -> Optional[str]:
         return self.r.get(f"idem:{key}")
 
+    # -- Processing lock (mutual exclusion, auto-releasing) ---------------
+
+    def acquire_processing_lock(self, sid: str, ttl_sec: int = 180) -> bool:
+        """Best-effort lock so only one worker processes a session at a time.
+        TTL-bounded so a crashed worker's lock auto-releases; release it in a
+        finally block once processing finishes so a later retry can re-acquire.
+        Returns True if this caller took the lock."""
+        return bool(self.r.set(f"lock:{self._key(sid)}", "1", nx=True, ex=ttl_sec))
+
+    def release_processing_lock(self, sid: str) -> None:
+        self.r.delete(f"lock:{self._key(sid)}")
+
     # -- Append log -------------------------------------------------------
 
     def append_log(self, sid: str, message: str) -> bool:
